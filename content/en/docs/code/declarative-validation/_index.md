@@ -64,33 +64,53 @@ The awkward rollback case is a bad declarative rule that allowed an invalid obje
 
 ## Tag catalog {#catalog}
 
+Stability in this table comes from `validation-gen --docs` when the tag is a validator. A few generator wiring tags do not have validator stability; those are marked as metadata.
+
 | Tag | What it is for | Stability |
 | --- | --- | --- |
-| [`+k8s:alpha`](#tag-alpha) | Shadow a validation rule while handwritten validation remains authoritative. | Stable |
-| [`+k8s:beta`](#tag-beta) | Enforce a migrated rule by default, with rollback through `DeclarativeValidationBeta`. | Stable |
-| [`+k8s:eachKey`](#tag-eachKey) | Apply a validator to every key in a map. | Alpha |
+| [`+k8s:alpha`](#tag-alpha) | Shadow a validation rule while handwritten validation remains authoritative. | Beta |
+| [`+k8s:beta`](#tag-beta) | Enforce a migrated rule by default, with rollback through `DeclarativeValidationBeta`. | Beta |
+| [`+k8s:customUnique`](#tag-customUnique) | Declare that list uniqueness is checked by handwritten validation. | Beta |
+| [`+k8s:eachKey`](#tag-eachKey) | Apply a validator to every key in a map. | Beta |
 | [`+k8s:eachVal`](#tag-eachVal) | Apply a validator to every value in a map or list. | Alpha |
-| [`+k8s:enum`](#tag-enum) | Treat all constants of a string type as the allowed values. | Beta |
-| [`+k8s:forbidden`](#tag-forbidden) | Reject a field when it is specified. | Alpha |
+| [`+k8s:enum`](#tag-enum) | Treat all constants of a string type as the allowed values. | Stable |
+| [`+k8s:enumExclude`](#tag-enumExclude) | Exclude one constant from an enum. | Alpha |
+| [`+k8s:forbidden`](#tag-forbidden) | Reject a field when it is specified. | Beta |
 | [`+k8s:format`](#tag-format) | Validate a string against a Kubernetes-defined format. | Stable |
-| [`+k8s:ifDisabled`](#tag-ifDisabled) | Run a nested validator only when an option is disabled. | Alpha |
-| [`+k8s:ifEnabled`](#tag-ifEnabled) | Run a nested validator only when an option is enabled. | Alpha |
-| [`+k8s:isSubresource`](#tag-isSubresource) | Mark a package as validation for a specific subresource. | Stable |
+| [`+k8s:ifDisabled`](#tag-ifDisabled) | Run a nested validator only when an option is disabled. | Beta |
+| [`+k8s:ifEnabled`](#tag-ifEnabled) | Run a nested validator only when an option is enabled. | Beta |
+| [`+k8s:ifMode`](#tag-ifMode) | Run a nested validator only for one discriminator mode. | Beta |
+| [`+k8s:immutable`](#tag-immutable) | Reject updates that change a field. | Beta |
+| [`+k8s:isSubresource`](#tag-isSubresource) | Mark a type as validation for a specific subresource. | Metadata |
 | [`+k8s:item`](#tag-item) | Apply a validator to one identified item in a list-map. | Stable |
 | [`+k8s:listMapKey`](#tag-listMapKey) | Name the key field for a list-map. | Stable |
 | [`+k8s:listType`](#tag-listType) | Declare list semantics: `atomic`, `map`, or `set`. | Stable |
+| [`+k8s:maxBytes`](#tag-maxBytes) | Limit string byte length. | Beta |
 | [`+k8s:maxItems`](#tag-maxItems) | Limit the number of items in a list. | Stable |
 | [`+k8s:maxLength`](#tag-maxLength) | Limit string length. | Stable |
+| [`+k8s:maxProperties`](#tag-maxProperties) | Limit the number of entries in a map. | Stable |
+| [`+k8s:maximum`](#tag-maximum) | Require a numeric maximum. | Stable |
+| [`+k8s:minItems`](#tag-minItems) | Require a minimum number of items in a list. | Stable |
+| [`+k8s:minLength`](#tag-minLength) | Require a minimum string length. | Stable |
+| [`+k8s:minProperties`](#tag-minProperties) | Require a minimum number of entries in a map. | Stable |
 | [`+k8s:minimum`](#tag-minimum) | Require a numeric minimum. | Stable |
+| [`+k8s:modeDiscriminator`](#tag-modeDiscriminator) | Mark the field that drives mode-based validation. | Beta |
 | [`+k8s:neq`](#tag-neq) | Reject one specific value. | Alpha |
 | [`+k8s:opaqueType`](#tag-opaqueType) | Ignore validations declared on a referenced type. | Alpha |
 | [`+k8s:optional`](#tag-optional) | Mark a field as optional to clients. | Stable |
 | [`+k8s:required`](#tag-required) | Mark a field as required from clients. | Stable |
 | [`+k8s:subfield`](#tag-subfield) | Apply a validator to a direct subfield. | Stable |
-| [`+k8s:supportsSubresource`](#tag-supportsSubresource) | Declare supported validation subresources for a package. | Stable |
-| [`+k8s:unionDiscriminator`](#tag-unionDiscriminator) | Mark the discriminator field for a union. | Stable |
+| [`+k8s:supportsSubresource`](#tag-supportsSubresource) | Declare supported validation subresources for a type. | Metadata |
+| [`+k8s:unionDiscriminator`](#tag-unionDiscriminator) | Mark the discriminator field for a union. | Beta |
 | [`+k8s:unionMember`](#tag-unionMember) | Mark a field as a union member. | Stable |
-| [`+k8s:zeroOrOneOfMember`](#tag-zeroOrOneOfMember) | Mark a field as part of an at-most-one group. | Stable |
+| [`+k8s:unique`](#tag-unique) | Add uniqueness semantics to a list. | Beta |
+| [`+k8s:update`](#tag-update) | Restrict allowed update transitions. | Beta |
+| [`+k8s:validateError`](#testing-only-tags) | Generator test helper that fails code generation. | Alpha |
+| [`+k8s:validateFalse`](#testing-only-tags) | Generator test helper that always fails validation. | Alpha |
+| [`+k8s:validateTrue`](#testing-only-tags) | Generator test helper that always passes validation. | Alpha |
+| [`+k8s:validateTrueAlpha`](#testing-only-tags) | Generator test helper that always passes validation at Alpha. | Alpha |
+| [`+k8s:validateTrueBeta`](#testing-only-tags) | Generator test helper that always passes validation at Beta. | Beta |
+| [`+k8s:zeroOrOneOfMember`](#tag-zeroOrOneOfMember) | Mark a member as part of an at-most-one group. | Stable |
 
 ## Tag reference
 
@@ -98,7 +118,7 @@ The awkward rollback case is a bad declarative rule that allowed an invalid obje
 
 Use this wrapper when a migrated validation rule should run in shadow mode. The handwritten result is still what users see; generated validation is compared against it.
 
-- Argument: `since`, required, formatted as a Kubernetes minor version string.
+- Argument: `since`, optional to the generator and expected for migrated rules. Use a Kubernetes minor version string.
 - Payload: one validation tag.
 
 ```go
@@ -114,7 +134,7 @@ Do not use this to try to disable handwritten validation. It only controls the l
 
 Use this wrapper after an Alpha rule has soaked cleanly, or for migrations that are allowed to start at Beta. With `DeclarativeValidationBeta=true`, the generated rule is authoritative. With the gate disabled, it falls back to shadow mode.
 
-- Argument: `since`, required, formatted as a Kubernetes minor version string.
+- Argument: `since`, optional to the generator and expected for migrated rules. Use a Kubernetes minor version string.
 - Payload: one validation tag.
 
 ```go
@@ -125,6 +145,20 @@ type MyStruct struct {
 ```
 
 When graduating a rule, update `since:` to the version where the rule entered the new stage.
+
+### `+k8s:customUnique` {#tag-customUnique}
+
+Marks a list as having handwritten uniqueness validation. This keeps the list metadata in declarative validation, but tells the generator not to emit the uniqueness check itself.
+
+Use this only when there is already custom logic that enforces the uniqueness rule.
+
+```go
+type MyStruct struct {
+    // +k8s:listType=set
+    // +k8s:customUnique
+    Names []string `json:"names"`
+}
+```
 
 ### `+k8s:eachKey` {#tag-eachKey}
 
@@ -176,6 +210,25 @@ type MyStruct struct {
 
 Generated validation rejects values outside the declared constants.
 
+### `+k8s:enumExclude` {#tag-enumExclude}
+
+Excludes one constant from an enum, even when the constant has the enum type.
+
+```go
+// +k8s:enum
+type MyEnum string
+
+const (
+    MyEnumA MyEnum = "A"
+    MyEnumB MyEnum = "B"
+
+    // +k8s:enumExclude
+    MyEnumInternal MyEnum = "Internal"
+)
+```
+
+`+k8s:enumExclude` can also be wrapped in `+k8s:ifEnabled` or `+k8s:ifDisabled` when a value is only excluded under some validation option.
+
 ### `+k8s:forbidden` {#tag-forbidden}
 
 Rejects the field when it is specified.
@@ -193,22 +246,30 @@ Use this when a field exists in a shape but must not be set in a particular cont
 
 Validates a string against a named Kubernetes format.
 
-Supported payloads in this migrated reference:
+Supported payloads:
 
+- `k8s-extended-resource-name`: Kubernetes extended resource name.
 - `k8s-ip`: IPv4 or IPv6 address.
+- `k8s-label-key`: Kubernetes label key.
+- `k8s-label-value`: Kubernetes label value.
 - `k8s-long-name`: Kubernetes long name / DNS subdomain.
+- `k8s-long-name-caseless`: deprecated case-insensitive long name.
+- `k8s-path-segment-name`: Kubernetes path segment name.
+- `k8s-resource-fully-qualified-name`: resource fully qualified name.
+- `k8s-resource-pool-name`: resource pool name.
 - `k8s-short-name`: Kubernetes short name / DNS label.
+- `k8s-uuid`: RFC 4122 UUID.
 
 ```go
 type MyStruct struct {
     // +k8s:format=k8s-ip
     IPAddress string `json:"ipAddress"`
 
-    // +k8s:format=k8s-long-name
-    Subdomain string `json:"subdomain"`
+    // +k8s:format=k8s-label-key
+    LabelKey string `json:"labelKey"`
 
-    // +k8s:format=k8s-short-name
-    Label string `json:"label"`
+    // +k8s:format=k8s-uuid
+    UID string `json:"uid"`
 }
 ```
 
@@ -221,7 +282,7 @@ Runs a nested validator only when the named validation option is disabled.
 
 ```go
 type MyStruct struct {
-    // +k8s:ifDisabled("my-feature")=+k8s:required
+    // +k8s:ifDisabled(MyFeature)=+k8s:required
     MyField string `json:"myField"`
 }
 ```
@@ -235,31 +296,70 @@ Runs a nested validator only when the named validation option is enabled.
 
 ```go
 type MyStruct struct {
-    // +k8s:ifEnabled("my-feature")=+k8s:required
+    // +k8s:ifEnabled(MyFeature)=+k8s:required
     MyField string `json:"myField"`
 }
 ```
 
+### `+k8s:ifMode` {#tag-ifMode}
+
+Runs a nested validator only when the struct's mode discriminator has a matching value.
+
+- Argument: mode value, or `mode:` when using named arguments.
+- Optional argument: `modality`, used when a struct has more than one discriminator group.
+- Payload: one validation tag.
+
+```go
+type MyStruct struct {
+    // +k8s:modeDiscriminator
+    Mode string `json:"mode"`
+
+    // +k8s:ifMode("External")=+k8s:required
+    External *ExternalConfig `json:"external,omitempty"`
+}
+```
+
+Fields that are only mentioned for one mode are implicitly forbidden in the other modes for that discriminator group.
+
+### `+k8s:immutable` {#tag-immutable}
+
+Rejects updates that change the field value.
+
+```go
+type MyStruct struct {
+    // +k8s:immutable
+    Name string `json:"name"`
+}
+```
+
+Use this for fields that may be set at creation time but must not change afterwards.
+
 ### `+k8s:isSubresource` {#tag-isSubresource}
 
-Marks a package as the validation implementation for a specific subresource. This is package-level metadata.
+Marks a type as the validation shape for a specific subresource.
 
-It depends on `+k8s:supportsSubresource` in the main API package. Without that matching support declaration, generated subresource validation code may exist but not be reachable through the dispatcher.
+It depends on `+k8s:supportsSubresource` on the root resource type. Without that matching support declaration, generated subresource validation code may exist but not be reachable through the dispatcher.
 
 - Payload: subresource path, such as `"/status"` or `"/scale"`.
 
-Main API package:
+Root resource type:
 
 ```go
 // +k8s:supportsSubresource="/scale"
-package v1
+type MyResource struct {
+    Spec   MySpec   `json:"spec,omitempty"`
+    Status MyStatus `json:"status,omitempty"`
+}
 ```
 
-Subresource validation package:
+Subresource type:
 
 ```go
 // +k8s:isSubresource="/scale"
-package scale
+type MyResourceScale struct {
+    Spec   ScaleSpec   `json:"spec,omitempty"`
+    Status ScaleStatus `json:"status,omitempty"`
+}
 ```
 
 Use this when subresource validation needs to live separately from root-object validation.
@@ -302,9 +402,9 @@ Names a field that participates in the key for a list-map. Use this with `+k8s:l
 type MyList []MyStruct
 
 type MyStruct struct {
-    keyFieldOne string `json:"keyFieldOne"`
-    keyFieldTwo string `json:"keyFieldTwo"`
-    valueField   string `json:"valueField"`
+    KeyFieldOne string `json:"keyFieldOne"`
+    KeyFieldTwo string `json:"keyFieldTwo"`
+    ValueField   string `json:"valueField"`
 }
 ```
 
@@ -322,12 +422,27 @@ Declares list semantics.
 type MyList []MyStruct
 
 type MyStruct struct {
-    keyField  string `json:"keyField"`
-    valueField string `json:"valueField"`
+    KeyField   string `json:"keyField"`
+    ValueField string `json:"valueField"`
 }
 ```
 
 List semantics matter for validation and for old/new correlation during updates.
+
+### `+k8s:maxBytes` {#tag-maxBytes}
+
+Limits string length in bytes.
+
+- Payload: non-negative integer.
+
+```go
+type MyStruct struct {
+    // +k8s:maxBytes=64
+    Token string `json:"token"`
+}
+```
+
+Use `+k8s:maxLength` when the limit is meant to be in characters instead.
 
 ### `+k8s:maxItems` {#tag-maxItems}
 
@@ -355,6 +470,71 @@ type MyStruct struct {
 }
 ```
 
+### `+k8s:maxProperties` {#tag-maxProperties}
+
+Limits the number of entries in a map.
+
+- Payload: non-negative integer.
+
+```go
+type MyStruct struct {
+    // +k8s:maxProperties=8
+    Labels map[string]string `json:"labels"`
+}
+```
+
+### `+k8s:maximum` {#tag-maximum}
+
+Requires a numeric value to be less than or equal to the payload.
+
+- Payload: integer.
+
+```go
+type MyStruct struct {
+    // +k8s:maximum=10
+    Replicas int `json:"replicas"`
+}
+```
+
+### `+k8s:minItems` {#tag-minItems}
+
+Requires a list to have at least the payload number of items.
+
+- Payload: non-negative integer.
+
+```go
+type MyStruct struct {
+    // +k8s:minItems=1
+    Names []string `json:"names"`
+}
+```
+
+### `+k8s:minLength` {#tag-minLength}
+
+Requires a string to have at least the payload number of characters.
+
+- Payload: integer.
+
+```go
+type MyStruct struct {
+    // +k8s:minLength=1
+    Name string `json:"name"`
+}
+```
+
+### `+k8s:minProperties` {#tag-minProperties}
+
+Requires a map to have at least the payload number of entries.
+
+- Payload: non-negative integer.
+
+```go
+type MyStruct struct {
+    // +k8s:minProperties=1
+    Selectors map[string]string `json:"selectors"`
+}
+```
+
 ### `+k8s:minimum` {#tag-minimum}
 
 Requires a numeric value to be greater than or equal to the payload.
@@ -367,6 +547,27 @@ type MyStruct struct {
     MyInt int `json:"myInt"`
 }
 ```
+
+### `+k8s:modeDiscriminator` {#tag-modeDiscriminator}
+
+Marks the field that controls mode-based validation.
+
+- Optional argument: `modality`, used when a struct has more than one discriminator group.
+
+```go
+type MyStruct struct {
+    // +k8s:modeDiscriminator
+    Mode string `json:"mode"`
+
+    // +k8s:ifMode("File")=+k8s:required
+    File *FileSource `json:"file,omitempty"`
+
+    // +k8s:ifMode("URL")=+k8s:required
+    URL *URLSource `json:"url,omitempty"`
+}
+```
+
+Discriminators may be string or bool fields.
 
 ### `+k8s:neq` {#tag-neq}
 
@@ -435,7 +636,7 @@ Applies a nested validator to a direct subfield of a struct, or to a field promo
 
 ```go
 type Wrapper struct {
-    // +k8s:subfield("name")=+k8s:required
+    // +k8s:subfield(name)=+k8s:required
     Metadata ObjectMeta `json:"metadata"`
 }
 
@@ -446,7 +647,7 @@ type ObjectMeta struct {
 
 ### `+k8s:supportsSubresource` {#tag-supportsSubresource}
 
-Declares which subresources the validation dispatcher should recognize for the types in a package. This is package-level metadata.
+Declares which subresources the validation dispatcher should recognize for a root resource type.
 
 - Payload: subresource path, such as `"/status"` or `"/scale"`.
 - May be repeated for multiple subresources.
@@ -454,10 +655,13 @@ Declares which subresources the validation dispatcher should recognize for the t
 ```go
 // +k8s:supportsSubresource="/status"
 // +k8s:supportsSubresource="/scale"
-package v1
+type MyResource struct {
+    Spec   MySpec   `json:"spec,omitempty"`
+    Status MyStatus `json:"status,omitempty"`
+}
 ```
 
-If a package has no `+k8s:supportsSubresource` tags, generated validation is only wired for the root resource.
+If a type has no `+k8s:supportsSubresource` tags, generated validation is only wired for the root resource.
 
 ### `+k8s:unionDiscriminator` {#tag-unionDiscriminator}
 
@@ -501,22 +705,112 @@ type MyStruct struct {
 }
 ```
 
+### `+k8s:unique` {#tag-unique}
+
+Declares uniqueness semantics for a list. This can be used with `+k8s:listType=atomic` when ownership should remain atomic but validation still needs set- or map-style uniqueness.
+
+- Payload: `set` or `map`.
+
+```go
+type MyStruct struct {
+    // +k8s:listType=atomic
+    // +k8s:unique=map
+    // +k8s:listMapKey=name
+    Ports []Port `json:"ports"`
+}
+
+type Port struct {
+    Name string `json:"name"`
+    Port int32  `json:"port"`
+}
+```
+
+Use `unique=map` with `+k8s:listMapKey`. Use `unique=set` when the whole item value is the identity.
+
+### `+k8s:update` {#tag-update}
+
+Restricts update transitions for a field.
+
+Supported constraints:
+
+- `NoSet`: reject unset-to-set transitions.
+- `NoUnset`: reject set-to-unset transitions.
+- `NoModify`: reject value changes, but still allow set/unset transitions.
+- `NoAddItem`: reject adding entries to a list or map.
+- `NoRemoveItem`: reject removing entries from a list or map.
+
+Multiple constraints are written as multiple tags.
+
+```go
+type MyStruct struct {
+    // +k8s:update=NoModify
+    // +k8s:update=NoUnset
+    Token *string `json:"token,omitempty"`
+
+    // +k8s:listType=map
+    // +k8s:listMapKey=name
+    // +k8s:update=NoAddItem
+    // +k8s:update=NoRemoveItem
+    Ports []Port `json:"ports"`
+}
+
+type Port struct {
+    Name string `json:"name"`
+    Port int32  `json:"port"`
+}
+```
+
+For list item immutability, apply `NoModify` to each value instead of to the list itself.
+
+```go
+type MyStruct struct {
+    // +k8s:listType=map
+    // +k8s:listMapKey=name
+    // +k8s:eachVal=+k8s:update=NoModify
+    Ports []Port `json:"ports"`
+}
+```
+
 ### `+k8s:zeroOrOneOfMember` {#tag-zeroOrOneOfMember}
 
-Marks a field as part of a group where at most one member may be set. It is valid for none of the members to be set.
+Marks a member as part of a group where at most one member may be set. It is valid for none of the members to be set.
 
 - Optional argument: `union`, used when a struct has more than one group.
 - Optional argument: `memberName`, used when the member name differs from the field name.
 
 ```go
 type MyStruct struct {
-    // +k8s:zeroOrOneOfMember
-    // +k8s:optional
-    Foo *Foo `json:"foo"`
+    // +k8s:listType=map
+    // +k8s:listMapKey=type
+    // +k8s:item(type: "Foo")=+k8s:zeroOrOneOfMember
+    // +k8s:item(type: "Bar")=+k8s:zeroOrOneOfMember
+    Conditions []Condition `json:"conditions"`
+}
 
-    // +k8s:zeroOrOneOfMember
-    // +k8s:optional
-    Bar *Bar `json:"bar"`
+type Condition struct {
+    Type   string `json:"type"`
+    Status string `json:"status"`
+}
+```
+
+The generator still accepts direct field usage, but new API docs should prefer the list-item form. Direct field usage is hard to evolve later because older clients cannot tell "no member set" from "a newer member was set".
+
+### Testing-only tags {#testing-only-tags}
+
+`validation-gen` also registers a few tags that are only useful in generator tests:
+
+- `+k8s:validateError`
+- `+k8s:validateFalse`
+- `+k8s:validateTrue`
+- `+k8s:validateTrueAlpha`
+- `+k8s:validateTrueBeta`
+
+Do not use these on Kubernetes API types. They exist so fixture packages can force specific generated-code or validation outcomes.
+
+```go
+type FixtureStruct struct {
+    // +k8s:validateFalse="field FixtureStruct.Name"
+    Name string `json:"name"`
 }
 ```
 
